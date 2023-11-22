@@ -10,7 +10,6 @@
             PrintTreeErrors(tree, error, __FILE__, __LINE__, __FUNCTION__); \
         }
 
-
 error_t TreeVerify(Tree* tree);
 
 void    PrintTreeErrors(Tree* tree, error_t error, const char* file,

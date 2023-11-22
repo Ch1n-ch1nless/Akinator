@@ -14,9 +14,9 @@
 #include <string.h>
 #include <sys/stat.h>
 
-typedef char stk_elem_t;
+typedef int stk_elem_t;
 
-#define elem_format "%c"
+#define elem_format "%d"
 
 /// The canary_t is data type of canaries
 typedef unsigned int canary_t;
@@ -43,7 +43,7 @@ struct Stack
     #endif
 };
 
-const stk_elem_t    STK_POISON_VALUE     = '\0';          //!< @brief The value of element, which show that we don't have this element
+const stk_elem_t    STK_POISON_VALUE     = -666;          //!< @brief The value of element, which show that we don't have this element
 const canary_t      LEFT_CANARY_VALUE    = 0x602DA617;    //!< @brief The value of working stack left canary
 const canary_t      RIGHT_CANARY_VALUE   = 0x602DABAD;    //!< @brief The value of working stack right canary
 const canary_t      INTRO_CANARY_VALUE   = 0xD134CA75;    //!< @brief The value of working data left canary

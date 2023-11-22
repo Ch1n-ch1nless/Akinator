@@ -15,9 +15,9 @@ error_t StackCtor(Stack* stk, const char* stk_name, const char* file, const int 
 
     //Allocate memory for data
     #if defined WITH_CANARY
-        stk->data = (char*) calloc(stk->capacity * sizeof(elem_t) + 2 * sizeof(canary_t), sizeof(char));
+        stk->data = (char*) calloc(stk->capacity * sizeof(stk_elem_t) + 2 * sizeof(canary_t), sizeof(char));
     #else /*WITHOUT CANARY*/
-        stk->data = (char*) calloc(stk->capacity * sizeof(elem_t), sizeof(char));
+        stk->data = (char*) calloc(stk->capacity * sizeof(stk_elem_t), sizeof(char));
     #endif
 
     stk->name = stk_name;
@@ -43,7 +43,7 @@ error_t StackCtor(Stack* stk, const char* stk_name, const char* file, const int 
     //Clean the data and fill all elements with a POISON_VALUE
     for (int i = 0; i < stk->capacity; i++)
     {
-        SetStkDataElemT(stk, i, POISON_VALUE);
+        SetStkDataElemT(stk, i, STK_POISON_VALUE);
     }
 
     //Calculate the hash
@@ -85,7 +85,7 @@ error_t StackDtor(Stack* stk)
     return NO_ERR;
 }
 
-error_t StackPush(Stack* stk, elem_t new_value)
+error_t StackPush(Stack* stk, stk_elem_t new_value)
 {
     assert(stk);
 
@@ -116,7 +116,7 @@ error_t StackPush(Stack* stk, elem_t new_value)
     return NO_ERR;
 }
 
-error_t StackPop(Stack* stk, elem_t* ret_value)
+error_t StackPop(Stack* stk, stk_elem_t* ret_value)
 {
     assert(stk);
     assert(ret_value);
@@ -132,7 +132,7 @@ error_t StackPop(Stack* stk, elem_t* ret_value)
     //Check if the data is empty
     if (stk->size == 0)
     {
-        *ret_value = POISON_VALUE;
+        *ret_value = STK_POISON_VALUE;
         error |= MINUS_SIZE_ERR;
         PRINT_ERROR(stk, error)
         return error;
@@ -141,7 +141,7 @@ error_t StackPop(Stack* stk, elem_t* ret_value)
     //Pop the element from data
     *ret_value = GetStkDataElemT(stk, stk->size-1);
     stk->size--;
-    SetStkDataElemT(stk, stk->size, POISON_VALUE);
+    SetStkDataElemT(stk, stk->size, STK_POISON_VALUE);
 
     //Calculate the hash
     #if defined WITH_HASH
@@ -191,9 +191,9 @@ error_t StackRealloc(Stack* stk)
     //Allocate the new memory area
     char* temp_ptr = nullptr; //temporary pointer
     #if defined WITH_CANARY
-        temp_ptr = (char*) realloc(stk->data, stk->capacity * sizeof(elem_t) + 2 * sizeof(canary_t) + 8);
+        temp_ptr = (char*) realloc(stk->data, stk->capacity * sizeof(stk_elem_t) + 2 * sizeof(canary_t) + 8);
     #else
-        temp_ptr = (char*) realloc(stk->data, stk->capacity * sizeof(elem_t));
+        temp_ptr = (char*) realloc(stk->data, stk->capacity * sizeof(stk_elem_t));
     #endif
 
     //Check the correct functioning of the realloc()
@@ -210,7 +210,7 @@ error_t StackRealloc(Stack* stk)
     //Clean the data and fill all elements with a POISON_VALUE
     for (size_t i = stk->size; i < (size_t)stk->capacity; i++)
     {
-        SetStkDataElemT(stk, i, POISON_VALUE);
+        SetStkDataElemT(stk, i, STK_POISON_VALUE);
     }
 
     //Set the values to left canary and right canary

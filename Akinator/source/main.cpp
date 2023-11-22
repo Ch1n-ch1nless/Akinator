@@ -1,18 +1,21 @@
 #include "akinator.h"
+#include "game_functions.h"
 
 int main()
 {
     error_t error = NO_ERR;
 
-    Tree tree = {};
+    Akinator akinator = {};
 
-    TREE_CTOR(&tree)
+    error = AKINATOR_CTOR(&akinator)
 
-    error |= FillTreeFromBuffer(&tree);
+    error |= FillTreeFromBuffer(&akinator);
 
-    error |= PlayGame(&tree);
+    error |= PlayGame(&akinator);
 
-    TreeDtor(&tree);
+    TreeGraphDump(&(akinator.tree));
+
+    error = AkinatorDtor(&akinator);
 
     return error;
 }

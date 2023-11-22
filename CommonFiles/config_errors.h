@@ -1,6 +1,10 @@
 #ifndef CONFIG_ERRORS_H_INCLUDED
 #define CONFIG_ERRORS_H_INCLUDED
 
+#include <assert.h>
+
+#define PTR_ASSERT(pointer)     assert((pointer != nullptr) && ("ERROR! Pointer to " #pointer "is NULL!!!\n"));
+
 typedef unsigned int error_t;
 
 enum Errors : error_t
@@ -33,6 +37,8 @@ enum Errors : error_t
     UNKNOWN_INDICATOR_ERR               = 1 << 24,
     WRONG_BUFFER_SYNTAX_ERR             = 1 << 25,
     INPUT_ERR                           = 1 << 26,
+    EMPTY_FILE_ERR                      = 1 << 27,
+    FREAD_ERR                           = 1 << 28,
 
     END_OF_ENUM
 };

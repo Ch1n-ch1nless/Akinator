@@ -1,65 +1,23 @@
 #ifndef AKINATOR_H_INCLUDED
 #define AKINATOR_H_INCLUDED
 
-#include "../../Tree/source/tree.h" // -I ../../Tree/source : #include <tree.h>
-#include "../../Tree/source/tree_dump.h"
+#include "akinator_config.h"
+#include "akinator_input.h"
 
-enum Mods : char
-{
-    INCORRECT_MODE   = '\0',
-    AKINATOR         = 'a',
-    DEFINITION       = 'd',
-    COMPARISON       = 'c',
-    DELETE_DATA_BASE = 'e',
-    SAVE_DATA_BASE   = 's',
-    DRAW_TREE        = 'p',
-    QUIT             = 'q'
-};
+#define AKINATOR_CTOR(akinator) AkinatorCtor(akinator, #akinator, __FILE__, __LINE__);
 
-enum States : char 
-{
-    AKINATOR = 'a', 
-};
+error_t AkinatorCtor(Akinator* akinator, const char* name, const char* file, const int line);
 
-enum Answers : char
-{
-    UNDEFINED_ANSWER = '\0',
-    YES              = 'y',
-    NO               = 'n'
-};
+error_t DataBaseCtor(char** const buffer, size_t* const buf_size);
 
-error_t PlayGame(Tree* tree);
+error_t AkinatorDtor(Akinator* akinator);
 
-void    ShowIntro();
+error_t DataBaseDtor(char** buffer, size_t* const buf_size);
 
-void    ShowOutro();
+error_t FillTreeFromBuffer(Akinator* akinator);
 
-Mods    GetMode();
+char*   ReadWordFromBuffer(char* string, error_t* error);
 
-error_t GuessObject(Node* node);
-
-Answers GetAnswer();
-
-error_t AddNewObject(Node* node);
-
-tree_t  GetNameOfObject(error_t* error);
-
-tree_t  GetDifference(error_t* error);
-
-error_t GetDefinition(Tree* tree);
-
-error_t GetComparison(Tree* tree);
-
-error_t DeleteDataBase(Tree* tree);
-
-error_t SaveDataBase(Tree* tree);
-
-void    ClearBuffer(void);
-
-bool    SearchObject(tree_t name_of_object, Stack* stk, Node* node);
-
-void    PrintNodeData(size_t* index, Stack* stk, Node* node, size_t len);
-
-void    SearchFirstDifference(size_t* index, Stack* stk1, Stack* stk2, Node* node1, Node* node2);
+Node*   GetNodeFromStack(Stack* stk, Tree* tree, error_t* error);
 
 #endif //AKINATOR_H_INCLUDED

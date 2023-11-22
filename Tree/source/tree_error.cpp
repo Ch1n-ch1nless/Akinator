@@ -2,7 +2,7 @@
 
 error_t TreeVerify(Tree* tree)
 {
-    assert((tree != nullptr) && "Pointer to tree is NULL!!!\n");
+    PTR_ASSERT(tree);
 
     error_t error = NO_ERR;
 
@@ -29,21 +29,15 @@ error_t TreeVerify(Tree* tree)
     return error;
 }
 
-const char* PrintTreeErrors(error_t error, char* buffer);
-{
-
-}
-
 void PrintTreeErrors(Tree* tree, error_t error, const char* file,
                                                 const int   line,
                                                 const char* function)
 {
-   assert((tree     != nullptr) && "Pointer to tree is NULL!!!\n");
-   assert((file     != nullptr) && "Pointer to tree is NULL!!!\n");
-   assert((function != nullptr) && "Pointer to function is NULL!!!\n");
-   assert((line      > 0)       && "Line is fewer than 0");
+   PTR_ASSERT(tree);
+   PTR_ASSERT(file);
+   PTR_ASSERT(function);
 
-   char*err_array =
+   assert((line > 0) && "ERROR! Line is fewer than zero!!!\n");
 
    if (error & OPEN_FILE_ERR)
    {

@@ -51,7 +51,7 @@ error_t StackDtor(Stack* stk);
  *@return NO_ERR - if the stack has been completed successfully
  *@return error  - the variable which contains numbers of errors, which u can see in enum ERRRORS.
  */
-error_t StackPush(Stack* stk, elem_t new_value);
+error_t StackPush(Stack* stk, stk_elem_t new_value);
 
 /**
  *@brief Delete last element of Stack
@@ -62,7 +62,7 @@ error_t StackPush(Stack* stk, elem_t new_value);
  *@return NO_ERR - if the stack has been completed successfully
  *@return error  - the variable which contains numbers of errors, which u can see in enum ERRRORS.
  */
-error_t StackPop(Stack* stk, elem_t* ret_value);
+error_t StackPop(Stack* stk, stk_elem_t* ret_value);
 
 /**
  *@brief Make the new memory area of array with canaries

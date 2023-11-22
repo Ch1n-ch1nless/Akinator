@@ -1,36 +1,33 @@
 #include "tree_dump.h"
 
-void TreeTextDump(Tree* tree, FILE* output, const char* file, const int   line,
-                                            const char* func, const char* mode )
+void TreeTextDump(Tree* tree, FILE* output, const char* file, const int line,
+                                            const char* func, Dump_mode mode )
 {
-    assert((tree   != nullptr) && "Pointer to tree   is NULL!!!\n");
-    assert((output != nullptr) && "Pointer to output is NULL!!!\n");
-    assert((file   != nullptr) && "Pointer to file   is NULL!!!\n");
-    assert((func   != nullptr) && "Pointer to func   is NULL!!!\n");
-    assert((mode   != nullptr) && "Pointer to tree   is NULL!!!\n");
+    PTR_ASSERT(tree);
+    PTR_ASSERT(output);
+    PTR_ASSERT(file);
+    PTR_ASSERT(func);
+
+    assert((line > 0) && "ERROR! Line is fewer then zero!!!\n");
 
     Node* start_node = tree->root;
 
     fprintf(output, "Tree \"%s\": [%p] from %s(%d)\n", tree->name, tree, tree->file, tree->line);
     fprintf(output, "called from file: %s(%d) in function: %s\n{\n", file, line, func);
 
-    fprintf(output, "\tBuffer size:    %d\n\n", tree->buf_size);
-
-    fprintf(output, "\tBuffer:         %s\n\n", tree->buffer);
-
     fprintf(output, "\tRoot of tree:   [%p]\n\n", tree->root);
 
-    fprintf(output, "\tNumber of nodes: %d\n\n\t\t", tree->size);
+    fprintf(output, "\tNumber of nodes: %u\n\n\t\t", tree->size);
 
-    if (strcmp(mode, PRE_ORDER) == 0)
+    if (mode == PRE_ORDER)
     {
         PrintInPreOrder(start_node, output);
     }
-    else if (strcmp(mode, POST_ORDER) == 0)
+    else if (mode == POST_ORDER)
     {
         PrintInPostOrder(start_node, output);
     }
-    else if (strcmp(mode, IN_ORDER) == 0)
+    else if (mode == IN_ORDER)
     {
         PrintInInOrder(start_node, output);
     }
@@ -59,7 +56,7 @@ void PrintInPreOrder(Node* node, FILE* output)
 
     PrintInPreOrder(node->right, output);
 
-    fprintf(output, ") ");
+    fprintf(output, " ) ");
 
     return;
 }
@@ -118,18 +115,17 @@ void TreeGraphDump(Tree* tree)
 
     FILE* dot_file = nullptr;
 
-    error = OpenFile(DOT_FILE, &dot_file, "w");
+    dot_file = fopen(DOT_FILE, "w");
     CHECK_TREE_ERROR(tree, error);
 
     //========================================================================================
 
-    // to single fprintf
-    fprintf(dot_file, "digraph G\n");
-    fprintf(dot_file, "{\n");
-    fprintf(dot_file, "\tgraph [dpi = 100];\n\n");
-    fprintf(dot_file, "\trankdir = TB;\n\n");
-    fprintf(dot_file, "\tedge[minlen = 3, arrowsize = 2, penwidth = 1.5];\n");
-    fprintf(dot_file, "\tnode[shape = Mrecord, style = \"rounded, filled\", "
+    fprintf(dot_file, "digraph G\n"
+                      "{\n"
+                      "\tgraph [dpi = 100];\n\n"
+                      "\trankdir = TB;\n\n"
+                      "\tedge[minlen = 3, arrowsize = 2, penwidth = 1.5];\n"
+                      "\tnode[shape = Mrecord, style = \"rounded, filled\", "
                       "fillcolor = \"yellow\", fontsize = 20, "
                       "penwidth = 3];\n\n");
 
@@ -147,7 +143,7 @@ void TreeGraphDump(Tree* tree)
 
     fclose(dot_file);
 
-    system("dot tree.dot -T png -o tree.png");
+    system("dot tree.dot -T png -o tree.png"); //Change!!!
 
 }
 

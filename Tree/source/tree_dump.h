@@ -12,12 +12,15 @@ const char* const PICTURE_FILE  = "tree.png";
 
 const char* const TXT_DUMP_FILE = "tree.dmp";
 
-const char* const PRE_ORDER     = "pre_order";
-const char* const POST_ORDER    = "post_order";
-const char* const IN_ORDER      = "in_order";
+enum Dump_mode : unsigned int
+{
+    PRE_ORDER   = 0,
+    POST_ORDER  = 1,
+    IN_ORDER    = 2,
+};
 
-void TreeTextDump(Tree* tree, FILE* output, const char* file, const int   line,
-                                            const char* func, const char* mode );
+void TreeTextDump(Tree* tree, FILE* output, const char* file, const int  line,
+                                            const char* func, Dump_mode  mode );
 
 void PrintInPreOrder(Node* node, FILE* output);
 

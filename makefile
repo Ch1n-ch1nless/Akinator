@@ -32,15 +32,13 @@ compile: $(TREE_OBJ) $(STK_OBJ) $(AKTR_OBJ)
 	$(CC) $(TREE_OBJ) $(STK_OBJ) $(AKTR_OBJ) -o akinator
 
 $(TREE_OBJ_DIR)%.o : $(TREE_SRC_DIR)%.cpp
-	@$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -c $< -o $@
 
 $(STK_OBJ_DIR)%.o : $(STK_SRC_DIR)%.cpp
-	@$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -c $< -o $@
 
 $(AKTR_OBJ_DIR)%.o : $(AKTR_SRC_DIR)%.cpp
-	@$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	@echo Hello
-	@touch clean
 	rm $(TREE_OBJ) $(STK_OBJ) $(AKTR_OBJ)

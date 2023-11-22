@@ -1,437 +1,249 @@
 #include "akinator.h"
 
-error_t PlayGame(Tree* tree)
+error_t AkinatorCtor(Akinator* akinator, const char* name, const char* file, const int line)
 {
-    assert((tree != nullptr) && "Pointer to tree is NULL!!!\n");
+    PTR_ASSERT(akinator)
+    PTR_ASSERT(name)
+    PTR_ASSERT(file)
+    assert((line > 0) && "ERROR! Line is not greater then zero!!!\n");
 
     error_t error = NO_ERR;
 
-    while (true)
-    {
-        ShowIntro();
+    error = TREE_CTOR(&(akinator->tree));
 
-        Mods mode = GetMode();
+    error = DataBaseCtor(&(akinator->buffer), &(akinator->buf_size));
 
-        switch (mode)
-        {
-            case AKINATOR:
-                error |= GuessObject(tree->root); //fix!
-                break;
+    akinator->name = name;
 
-            case MODS_DEFINITION:
-                error |= GetDefinition(tree); //TODO fix function
-                break;
+    akinator->file = file,
 
-            case COMPARISON:
-                error |= GetComparison(tree); //TODO fix function
-                break;
-
-            case DELETE_DATA_BASE:
-                error |= DeleteDataBase(tree);
-                break;
-
-            case SAVE_DATA_BASE:
-                error |= SaveDataBase(tree);
-                break;
-
-            case DRAW_TREE:
-                TreeGraphDump(tree);
-                break;
-
-            case QUIT:
-                ShowOutro();
-                return error;
-                break;
-
-            case INCORRECT_MODE:
-                printf("You enter wrong mode try again!\n");
-                break;
-            
-            default:
-                break;
-        }
-
-        printf("Do you want to continue game?\n");
-
-        Answers ans = GetAnswer();
-        switch(ans)
-        {
-            case YES:
-                break;
-
-            case NO:
-                ShowOutro();
-                return error;
-
-            case UNDEFINED_ANSWER:
-            default:
-                fprintf(stderr, "Error! Unknown answer");
-                return error | INPUT_ERR;
-        }
-
-    }
+    akinator->line = line;
 
     return error;
 }
 
-void ShowIntro()
+error_t DataBaseCtor(char** const buffer, size_t* const buf_size)
 {
-    printf("Hello, dear friend! I am AkinatorGPT. I can read minds!\n"
-           "Ok, i will tell you more about my capabilities:\n"
-           "\tEnter \'a\' -- I'll guess what you've made up your mind\n"
-           "\tEnter \'d\' -- I'll give you a definition of object\n"
-           "\tEnter \'c\' -- I'll give you comprasion of 2 objects!\n"
-           "\tEnter \'e\' -- I'll delete me data base!\n"
-           "\tEnter \'s\' -- I'll save my new data base!\n"
-           "\tEnter \'p\' -- I'll draw tree graph!\n"
-           "\tEnter \'q\' -- I'll complete the job!\n\n");
-
-    return;
-}
-
-void ShowOutro()
-{
-    printf("Goodbye, my dear friend! See you soon!\n");
-}
-
-Mods GetMode()
-{
-    char mode = INCORRECT_MODE;
-    scanf("%c", &mode);
-
-    ClearBuffer();
-    
-    return (Mods) mode;
-}
-
-error_t GuessObject(Node* node)
-{
-    assert((node != nullptr) && "Pointer to node is NULL!!!\n");
+    PTR_ASSERT(buffer)
+    PTR_ASSERT(buf_size)
 
     error_t error = NO_ERR;
 
-    while (true)
-    {
-        printf(tree_format "?\n", node->data);
+    FILE* file_pointer = nullptr;
 
-        Answers answer = UNDEFINED_ANSWER;
+    error = OpenFile(DATA_FILE_NAME, &file_pointer, "rb");
 
-        while ((answer = GetAnswer()) == UNDEFINED_ANSWER)
-        {
-            printf("Akinator can not understand your command, please, try again!\n\n");
-            printf(tree_format "?\n", node->data);
-        }
+    error = CountBufferSize(DATA_FILE_NAME, buf_size);
 
-        switch(answer)
-        {
-            case YES:
-            {
-                if (node->left == nullptr)
-                {
-                    printf("I am right, however!\n");
-                    return error;
-                }
-                else
-                {
-                    node = node->left;
-                }
-                break;
-            }
+    error = ReadBufferFromFile(buffer, file_pointer, *buf_size);
 
-            case NO:
-            {
-                if (node->right == nullptr)
-                {
-                    printf("Ok, i was wrong, who or what did you wish?\n");
-                    error |= AddNewObject(node);
-                    return error;
-                }
-                else
-                {
-                    node = node->right;
-                }
-                break;
-            }
-
-            case UNDEFINED_ANSWER:
-                break;
-
-            default:
-                break;
-        }
-    }
+    error = CloseFile(file_pointer);
 
     return error;
 }
 
-Answers GetAnswer()
+error_t AkinatorDtor(Akinator* akinator)
 {
-    printf("Enter \'y\' -- if your answer is yes\n");
-    printf("Enter \'n\' -- if your answer is no\n");
-
-    char ans = '\0';
-    scanf("%c", &ans);
-
-    ClearBuffer();
-    // Remove switch
-    switch(ans)
-    {
-        case (char) YES:
-            return YES;
-            break;
-
-        case (char) NO:
-            return NO;
-            break;
-
-        default:
-            return UNDEFINED_ANSWER;
-            break;
-    }
-}
-
-error_t AddNewObject(Node* node)
-{
-    assert((node != nullptr) && "Pointer to node is NULL!!!\n");
+    PTR_ASSERT(akinator)
 
     error_t error = NO_ERR;
 
-    // check all errors
-    tree_t new_object = GetNameOfObject(&error);
-    tree_t difference = GetDifference(&error);
+    error = TreeDtor(&(akinator->tree));
 
-    Node* right_node = NodeCtor(&error, node->data);
-    Node* left_node  = NodeCtor(&error, new_object);
+    error = DataBaseDtor(&(akinator->buffer), &(akinator->buf_size));
 
-    node->data  = difference;
-    node->left  = left_node;
-    node->right = right_node;
+    akinator->name  = nullptr;
+
+    akinator->file  = nullptr;
+
+    akinator->line  = -1;
 
     return error;
 }
 
-tree_t GetNameOfObject(error_t* error) //Same functions!
+error_t DataBaseDtor(char** buffer, size_t* const buf_size)
 {
-    assert((error != nullptr) && "Pointer to error is NULL!!!\n");
-
-    printf("Enter the name of your object?\n");
-
-    tree_t name_of_object = (tree_t) calloc(MAX_LEN_OF_WORD, sizeof(char));
-    if ( 0 )
-        return nullptr;
-    // calloc check?
-
-    fgets(name_of_object, MAX_LEN_OF_WORD, stdin);
-    // ret val?
-    name_of_object[strlen(name_of_object) - 1] = '\0';
-
-    return name_of_object;
-}
-
-tree_t GetDifference(error_t* error) //Same functions!
-{
-    assert((error != nullptr) && "Pointer to error is NULL!!!\n");
-
-    printf("How do they differ from?\n");
-
-    tree_t difference = (tree_t) calloc(MAX_LEN_OF_WORD, sizeof(char));
-
-    fgets(difference, MAX_LEN_OF_WORD, stdin);
-    difference[strlen(difference) - 1] = '\0';   
-
-    return difference;
-}
-
-error_t GetDefinition(Tree* tree)
-{
-    assert((tree != nullptr) && "Pointer to tree is NULL!!!\n");
+    PTR_ASSERT(buffer)
+    PTR_ASSERT(buf_size)
 
     error_t error = NO_ERR;
 
-    tree_t name_of_object = GetNameOfObject(&error);
+    free(*buffer);
+
+    *buffer = nullptr;
+
+    buffer = nullptr;
+
+    *buf_size = 0;
+
+    return error;
+}
+
+error_t FillTreeFromBuffer(Akinator* akinator)
+{
+    PTR_ASSERT(akinator)
+    PTR_ASSERT(akinator->buffer)
+
+    error_t error = NO_ERR;
+
+    Node* node = (akinator->tree).root;
+
+    char* cur_symbol = akinator->buffer;
 
     Stack stk = {};
 
-    STACK_CTOR(&stk);
+    error |= STACK_CTOR(&stk);
 
-    SearchObject(name_of_object, &stk, tree->root);
-
-    if (stk.size == 0)
+    if (*cur_symbol != '(')
     {
-        printf("Sorry, object \'%s\' isn't in data base!\n", name_of_object);
+        error |= WRONG_BUFFER_SYNTAX_ERR;
+        return error;
     }
     else
     {
-        printf("Definition of %s:\n", name_of_object);
+        cur_symbol++;
+    }
 
-        for (size_t i = 0; i < (size_t) stk.size - 1; i++)
+    while ((size_t)(cur_symbol - akinator->buffer) < akinator->buf_size)
+    {
+        SkipWhiteSpacesTabsAndEnters(&cur_symbol);
+
+        switch(*cur_symbol)
         {
-            Node* cur_node  = *GetStkDataElemT(&stk, i);
-            Node* next_node = *GetStkDataElemT(&stk, i + 1);
-
-            // str = "not "
-            if (cur_node->right == next_node)
+            case ('('):
             {
-                printf("\t[%d]: not" tree_format "\n", i, cur_node->data);
+                if (node->left == nullptr)
+                {
+                    error |= StackPush(&stk, ADD_LEFT_NODE);
+                    node->left = NodeCtor(&error, nullptr);
+                }
+                else
+                {
+                    if (node->right == nullptr)
+                    {
+                        error |= StackPush(&stk, ADD_RIGHT_NODE);
+                        node->right = NodeCtor(&error, nullptr);
+                    }
+                    else
+                    {
+                        error |= WRONG_BUFFER_SYNTAX_ERR;
+                        return error;
+                    }
+                }
+                ++cur_symbol;
+                break;
             }
-            else
+
+            case(')'):
             {
-                printf("\t[%d]: " tree_format "\n", i, cur_node->data);
+                if (stk.size == 0)
+                {
+                    if ((size_t)(cur_symbol - akinator->buffer) != akinator->buf_size - 1)
+                    {
+                        error |= WRONG_BUFFER_SYNTAX_ERR;
+                        return error;
+                    }
+                }
+
+                stk_elem_t ret_value = STK_POISON_VALUE;
+                error |= StackPop(&stk, &ret_value);
+
+                node = GetNodeFromStack(&stk, &(akinator->tree), &error);
+
+                ++cur_symbol;
+                break;
+            }
+
+            case('\"'):
+            {
+                node = GetNodeFromStack(&stk, &(akinator->tree), &error);
+
+                cur_symbol++;
+                char* word = ReadWordFromBuffer(cur_symbol, &error);
+                node->data = word;
+                cur_symbol = strchr(cur_symbol, '\"');
+                if (cur_symbol == nullptr)
+                {
+                    return error | WRONG_BUFFER_SYNTAX_ERR;
+                }
+                cur_symbol++;
+                break;
+            }
+
+            default:
+            {
+                error |= WRONG_BUFFER_SYNTAX_ERR;
+                return error;
             }
         }
     }
 
-    return error;
-}
-
-error_t GetComparison(Tree* tree)
-{
-    assert((tree != nullptr) && "Pointer to tree is NULL!!!\n");
-
-    error_t error = NO_ERR;
-
-    // use GetDefinition here
-    tree_t name1 = GetNameOfObject(&error);
-
-    Stack stk1 = {};
-
-    STACK_CTOR(&stk1);
-
-    tree_t name2 = GetNameOfObject(&error);
-
-    Stack stk2 = {};
-
-    STACK_CTOR(&stk2);
-
-    size_t index1 = 0;
-    size_t index2 = 0;
-
-    SearchObject(name1, &stk1, tree->root);
-    SearchObject(name2, &stk2, tree->root);
-
-    Node* node1 = *GetStkDataElemT(&stk1, index1);
-    Node* node2 = *GetStkDataElemT(&stk1, index2);
-
-    printf("Common features of objects:\n");
-    SearchFirstDifference(&index1, &stk1, &stk2, node1, node2);
-    PrintNodeData(&index2, &stk1, node1, index1);
-
-    printf("\nDifferent features of " tree_format "\n", name1);
-    PrintNodeData(&index1, &stk1, node1, stk1.size - 1);
-
-    printf("\nDifferent features of " tree_format "\n", name2);
-    PrintNodeData(&index2, &stk2, node2, stk2.size - 1);
+    error |= StackDtor(&stk);
 
     return error;
 }
 
-error_t DeleteDataBase(Tree* tree)
+char* ReadWordFromBuffer(char* string, error_t* error)
 {
-    assert((tree != nullptr) && "Pointer to tree is NULL!!!\n");
+    PTR_ASSERT(string)
+    PTR_ASSERT(error)
 
-    error_t error = NO_ERR;
-
-    TreeDtor(tree);
-
-    FILE* data_file = nullptr;
-
-    error = OpenFile(DATA_FILE_NAME, &data_file, "w");
-    if (error != NO_ERR)
+    char* word = (char*) calloc(MAX_LEN_OF_WORD, sizeof(char));
+    if (word == nullptr)
     {
-        return error;
+        *error |= MEM_ALLOC_ERR;
+        return nullptr;
     }
 
-    //PrintInPreOrder(tree->root, data_file);
+    bool is_find_double_quotes = false;
 
-    //CLOOOOSE!!!
+    for (size_t i = 0; i < MAX_LEN_OF_WORD; i++)
+    {
+        if (string[i] != '\"')
+        {
+            word[i] = string[i];
+        }
+        else
+        {
+            word[i] = '\0';
+            is_find_double_quotes = true;
+            break;
+        }
+    }
 
-    return error;
+    if (is_find_double_quotes == false)
+    {
+        *error |= LEN_OF_WORD_IS_BIGGER_MAX_SIZE_ERR;
+    }
+
+    return word;
 }
 
-error_t SaveDataBase(Tree* tree)
+Node* GetNodeFromStack(Stack* stk, Tree* tree, error_t* error)
 {
-    assert((tree != nullptr) && "Pointer to tree is NULL!!!\n");
+    PTR_ASSERT(stk)
+    PTR_ASSERT(tree)
+    PTR_ASSERT(error)
 
-    error_t error = NO_ERR;
+    Node* node = tree->root;
 
-    FILE* data_file = nullptr;
-
-    error = OpenFile(DATA_FILE_NAME, &data_file, "w");
-    if (error != NO_ERR)
+    for (size_t i = 0; i < (size_t) stk->size; i++)
     {
-        return error;
+        switch(GetStkDataElemT(stk, i))
+        {
+            case ADD_LEFT_NODE:
+                node = node->left;
+                break;
+
+            case ADD_RIGHT_NODE:
+                node = node->right;
+                break;
+
+            default:
+                *error |= UNKNOWN_INDICATOR_ERR;
+                return nullptr;
+        }
     }
 
-    PrintInPreOrder(tree->root, data_file);
-
-    return error;
-}
-
-void ClearBuffer(void)
-{
-    int c = EOF;
-    do
-    {
-        c = getchar();
-    } 
-    while (c != EOF && c != '\n');
-}
-
-bool SearchObject(tree_t name_of_object, Stack* stk, Node* node)
-{
-    elem_t temp_adress_of_temp_node = nullptr;
-
-    StackPush(stk, &node);
-    
-    if (strcmp(name_of_object, node->data) == 0)
-    {
-        return true;
-    }
-
-    if ((node->left != nullptr) && SearchObject(name_of_object, stk, node->left))
-    {
-        return true;
-    }
-
-    if ((node->right != nullptr) && SearchObject(name_of_object, stk, node->right))
-    {
-        return true;
-    }
-
-    StackPop(stk, &temp_adress_of_temp_node);
-
-    return false;
-}
-
-void PrintNodeData(size_t* index, Stack* stk, Node* node, size_t len)
-{
-    assert((stk  != nullptr) && "Error! Pointer to stack is NULL!!!\n");
-    assert((node != nullptr) && "Error! Pointer to node  is NULL!!!\n");
-    assert((*index > len)    && "Error! Index is greater then len!!!\n"); //nullptr!!!
-
-    while (*index < len)
-    {
-        printf("\t" tree_format "\n", node->data);
-        ++*index;
-        node = *GetStkDataElemT(stk, *index);
-    }
-
-    return;
-}
-
-void SearchFirstDifference(size_t* index, Stack* stk1, Stack* stk2, Node* node1, Node* node2)
-{
-    assert((index != nullptr) && "Error! Pointer to index is NULL!!!\n");
-    assert((stk1  != nullptr) && "Error! Pointer to stk1  is NULL!!!\n");
-    assert((stk2  != nullptr) && "Error! Pointer to stk1  is NULL!!!\n");
-    assert((node1 != nullptr) && "Error! Pointer to node1 is NULL!!!\n");
-    assert((node2 != nullptr) && "Error! Pointer to node2 is NULL!!!\n");
-
-    while (*index < (size_t)(stk1->size - 1) && *index < (size_t)(stk2->size - 1) && strcmp(node1->data, node2->data) == 0)
-    {
-        *index += 1;
-        node1 = *GetStkDataElemT(stk1, *index);
-        // check error
-        node2 = *GetStkDataElemT(stk2, *index);
-    }
+    return node;
 }
