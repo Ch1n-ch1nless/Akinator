@@ -15,7 +15,7 @@ error_t PlayGame(Akinator* akinator)
         switch (mode)
         {
             case MODE_GUESSING:
-                error |= GuessObject(akinator->tree.root); 
+                error |= GuessObject(&(akinator->tree)); 
                 CHECK_ERRORS(error)
                 break;
 
@@ -90,11 +90,13 @@ Mods GetMode()
     return (Mods) mode;
 }
 
-error_t GuessObject(Node* node)
+error_t GuessObject(Tree* tree)
 {
-    PTR_ASSERT(node)
+    PTR_ASSERT(tree)
 
     error_t error = NO_ERR;
+
+    Node* node = tree->root;
 
     while (true)
     {
@@ -114,7 +116,7 @@ error_t GuessObject(Node* node)
             {
                 if (node->left == nullptr)
                 {
-                    printf("I am right, however!\n");
+                    printf(LGREEN("I am right, however!\n"));
                     return error;
                 }
                 else
@@ -128,7 +130,7 @@ error_t GuessObject(Node* node)
             {
                 if (node->right == nullptr)
                 {
-                    printf("Ok, i was wrong, who or what did you wish?\n");
+                    printf(LRED("Ok, i was wrong, who or what did you wish?\n"));
                     error |= AddNewObject(node);
                     return error;
                 }
@@ -199,14 +201,15 @@ error_t GetDefinition(Tree* tree)
     STACK_CTOR(&stk)
 
     error = StackDefinition(tree->root, &stk, &name_of_object);
+    CHECK_ERRORS(error)
 
     if (stk.size == 0)
     {
-        printf("Sorry, object \'%s\' isn't in data base!\n", name_of_object);
+        printf("Sorry, object \"%s\" isn't in data base!\n", name_of_object);
     }
     else
     {
-        printf("Definition of %s:\n", name_of_object);
+        printf("Definition of \"%s\":\n", name_of_object);
 
         size_t index = 0;
         PrintNodesData(&index, &stk, tree->root, stk.size);
@@ -221,7 +224,7 @@ error_t GetDefinition(Tree* tree)
 
 error_t GetComparison(Tree* tree)
 {
-    assert((tree != nullptr) && "Pointer to tree is NULL!!!\n");
+    PTR_ASSERT(tree)
 
     error_t error = NO_ERR;
 
@@ -313,8 +316,10 @@ error_t StackDefinition(Node* node, Stack* stk, char** name_of_object)
     error_t error = NO_ERR;
 
     *name_of_object = ReadWordFromStdInput(&error);
+    CHECK_ERRORS(error)
 
     SearchObject(*name_of_object, node, stk, &error);
+    CHECK_ERRORS(error)
 
     return error;
 }

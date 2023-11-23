@@ -29,7 +29,7 @@ error_t PlayGame(Akinator* akinator);
 
 Mods    GetMode();
 
-error_t GuessObject(Node* node);
+error_t GuessObject(Tree* tree);
 
 Answers GetAnswer();
 

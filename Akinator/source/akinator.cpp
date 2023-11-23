@@ -10,6 +10,7 @@ error_t AkinatorCtor(Akinator* const akinator, const char* const name, const cha
     error_t error = NO_ERR;
 
     error |= TREE_CTOR(&(akinator->tree));
+    CHECK_TREE_ERROR(&(akinator->tree), error)
 
     error |= FillBuffer(&(akinator->buffer), &(akinator->buf_size));
 
@@ -20,6 +21,8 @@ error_t AkinatorCtor(Akinator* const akinator, const char* const name, const cha
     akinator->file = file,
 
     akinator->line = line;
+
+    CHECK_ERRORS(error)
 
     return error;
 }
@@ -105,14 +108,14 @@ error_t FillTreeFromBuffer(Akinator* akinator)
     {
         cur_symbol++;
     }
-
+    
     while ((size_t)(cur_symbol - akinator->buffer) < akinator->buf_size)
     {
         SkipWhiteSpacesTabsAndEnters(&cur_symbol);
 
         switch(*cur_symbol)
         {
-            case ('('):
+            case (OPEN_NODE_BRACKET):
             {
                 if (node->left == nullptr)
                 {
@@ -132,11 +135,11 @@ error_t FillTreeFromBuffer(Akinator* akinator)
                         return error;
                     }
                 }
-                ++cur_symbol;
+                cur_symbol++;
                 break;
             }
 
-            case(')'):
+            case(CLOSE_NODE_BRACKET):
             {
                 if (stk.size == 0)
                 {
@@ -152,23 +155,14 @@ error_t FillTreeFromBuffer(Akinator* akinator)
 
                 node = GetNodeFromStack(&stk, &(akinator->tree), &error);
 
-                ++cur_symbol;
+                cur_symbol++;
                 break;
             }
 
-            case('\"'):
+            case(OPEN_WORD_BRACKET): //Constants in akinator.h | 
             {
                 node = GetNodeFromStack(&stk, &(akinator->tree), &error);
-
-                cur_symbol++;
-                char* word = ReadWordFromBuffer(cur_symbol, &error);
-                node->data = word;
-                cur_symbol = strchr(cur_symbol, '\"');
-                if (cur_symbol == nullptr)
-                {
-                    return error | WRONG_BUFFER_SYNTAX_ERR;
-                }
-                cur_symbol++;
+                error |= FillNodeData(node, &cur_symbol);
                 break;
             }
 
@@ -332,4 +326,23 @@ void PrintAkinatorError(error_t error)
     {
         printf("Error! Error in function 'fread'!!\n");
     }
+}
+
+error_t FillNodeData(Node* node, char** const cur_symbol)
+{
+    PTR_ASSERT(node)
+
+    error_t error = NO_ERR;
+
+    (*cur_symbol)++;
+    char* word = ReadWordFromBuffer(*cur_symbol, &error);
+    node->data = word;
+    *cur_symbol = strchr(*cur_symbol, CLOSE_WORD_BRACKET);
+    if (cur_symbol == nullptr)
+    {
+        return error | WRONG_BUFFER_SYNTAX_ERR;
+    }
+    (*cur_symbol)++;
+
+    return error;
 }

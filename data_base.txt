@@ -1,1 +1,13 @@
-( "Rapper" ( "Russian" ( "plastiq") ( "Bones") ) ( "Lives in First drom" ( "Poltorashka") ( "Big ears" ( "Rabbit") ( "Capybara") ) ) )
+( "Rapper" 
+    ( "Russian" 
+        ( "plastiq" ) 
+        ( "Bones"   ) 
+    ) 
+    ( "Lives in first dorm" 
+        ( "Poltorashka" ) 
+        ( "Big ears" 
+            ( "Rabbit"   ) 
+            ( "Capybara" ) 
+        ) 
+    ) 
+)

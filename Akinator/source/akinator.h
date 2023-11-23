@@ -6,10 +6,15 @@
 
 #define AKINATOR_CTOR(akinator) AkinatorCtor(akinator, #akinator, __FILE__, __LINE__);
 
-#define CHECK_ERRORS(error)      if (error != NO_ERR)            \
+#define CHECK_ERRORS(error)     if (error != NO_ERR)            \
                                 {                               \
                                     PrintAkinatorError(error);  \
                                 }
+
+const char OPEN_NODE_BRACKET  = '(';
+const char CLOSE_NODE_BRACKET = ')';
+const char OPEN_WORD_BRACKET  = '\"';
+const char CLOSE_WORD_BRACKET = '\"';
 
 error_t AkinatorCtor(Akinator* akinator, const char* name, const char* file, const int line);
 
@@ -28,5 +33,7 @@ Node*   GetNodeFromStack(Stack* stk, Tree* tree, error_t* error);
 error_t AkinatorVerify(Akinator* const akinator);
 
 void    PrintAkinatorError(error_t error);
+
+error_t FillNodeData(Node* node, char** const cur_symbol);
 
 #endif //AKINATOR_H_INCLUDED
