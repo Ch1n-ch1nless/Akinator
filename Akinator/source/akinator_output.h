@@ -9,8 +9,8 @@ void ShowIntro();
 
 void ShowOutro();
 
-void PrintNodeData(size_t* index, Stack* stk, Node* node, size_t len);
+void PrintNodesData(size_t* index, Stack* stk, Node* node, size_t len);
 
-void PrintPathToNode(Node* node, Stack* stk, size_t len);
+void PrintNodeData(size_t index, Stack* stk, Node** node);
 
 #endif /*AKINATOR_OUTPUT_H_INCLUDED*/

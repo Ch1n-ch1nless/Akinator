@@ -22,56 +22,59 @@ void ShowOutro()
     return;
 }
 
-void PrintNodeData(size_t* index, Stack* stk, Node* node, size_t len)
+void PrintNodesData(size_t* index, Stack* stk, Node* node, size_t len)
 {
     PTR_ASSERT(stk)
     PTR_ASSERT(node)
     PTR_ASSERT(index)
-    assert((*index > len) && "ERROR! Index is greater then len!!!\n");
+    assert((*index <= len) && "ERROR! Index is greater then len!!!\n");
 
     while (*index < len)
     {
-        printf("\t" tree_format "\n", node->data);
+        PrintNodeData(*index, stk, &node);
+
         ++*index;
-        switch(GetStkDataElemT(stk, *index))
-        {
-            case ADD_LEFT_NODE:
-                node = node->left;
-                break;
-
-            case ADD_RIGHT_NODE:    
-                node = node->right;
-                break;
-
-            default:
-                break;
-        }
     }
 
     return;
 }
 
-void PrintPathToNode(Node* node, Stack* stk, size_t len)
+void PrintNodeData(size_t index, Stack* stk, Node** node)
 {
     PTR_ASSERT(node)
     PTR_ASSERT(stk)
 
-    for (size_t index = 0; index < len; index++)
+    stk_elem_t  indicator = GetStkDataElemT(stk, index);
+
+    const char* line = nullptr;
+
+    switch(indicator)
     {
-        printf("\t" tree_format "\n", node->data);
+        case ADD_LEFT_NODE:
+            line = "";
+            break;
 
-        switch(GetStkDataElemT(stk, index))
-        {
-            case ADD_LEFT_NODE:
-                node = node->left;
-                break;
+        case ADD_RIGHT_NODE:
+            line = "not ";
+            break;
 
-            case ADD_RIGHT_NODE:
-                node = node->right;
-                break;
+        default:
+            break;
+    }
 
-            default:
-                break;
-        }
+    printf("\t %s" tree_format "\n", line, (*node)->data);
+
+    switch(indicator)
+    {
+        case ADD_LEFT_NODE:
+            *node = (*node)->left;
+            break;
+
+        case ADD_RIGHT_NODE:
+            *node = (*node)->right;
+            break;
+
+        default:
+            break;
     }
 }

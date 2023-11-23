@@ -35,7 +35,7 @@ error_t PlayGame(Akinator* akinator)
                 break;
 
             case MODE_DRAW_TREE:
-                TreeGraphDump(&(akinator->tree)); //include dump
+                TreeGraphDump(&(akinator->tree)); 
                 break;
 
             case MODE_QUIT:
@@ -187,9 +187,8 @@ error_t GetDefinition(Tree* tree)
     error_t error = NO_ERR;
 
     printf("Enter the name of your object.\n");
-    char* name_of_object = ReadWordFromStdInput(&error);
-
-    Stack* stk = SearchObject(name_of_object, tree->root, &error);
+    char* name_of_object = nullptr;
+    Stack* stk = StackDefinition(tree->root, &error, &name_of_object);
 
     if (stk->size == 0)
     {
@@ -199,8 +198,12 @@ error_t GetDefinition(Tree* tree)
     {
         printf("Definition of %s:\n", name_of_object);
 
-        PrintPathToNode(tree->root, stk, stk->size - 1);
+        size_t index = 0;
+        PrintNodesData(&index, stk, tree->root, stk->size);
     }
+
+    free(stk);
+    free(name_of_object);
 
     return error;
 }
@@ -212,12 +215,12 @@ error_t GetComparison(Tree* tree)
     error_t error = NO_ERR;
 
     printf("Enter name of first object:\n");
-    char* name1 = ReadWordFromStdInput(&error);
-    Stack* stk1 = SearchObject(name1, tree->root, &error);
+    char* name1 = nullptr;
+    Stack* stk1 = StackDefinition(tree->root, &error, &name1);
 
-    printf("Enter name of first object:\n");
-    char* name2 = ReadWordFromStdInput(&error);
-    Stack* stk2 = SearchObject(name2, tree->root, &error);
+    printf("Enter name of second object:\n");
+    char* name2 = nullptr;
+    Stack* stk2 = StackDefinition(tree->root, &error, &name2);
 
     size_t index1 = 0;
     size_t index2 = 0;
@@ -226,14 +229,19 @@ error_t GetComparison(Tree* tree)
     Node* node2 = tree->root;
 
     printf("Common features of objects:\n");
-    SearchFirstDifference(&index1, stk1, stk2, node1, node2);
-    PrintNodeData(&index2, stk1, node1, index1);
+    SearchFirstDifference(&index1, stk1, stk2);
+    PrintNodesData(&index2, stk1, tree->root, index1);
 
     printf("\nDifferent features of " tree_format "\n", name1);
-    PrintNodeData(&index1, stk1, node1, stk1->size - 1);
+    PrintNodesData(&index1, stk1, node1, stk1->size);
 
     printf("\nDifferent features of " tree_format "\n", name2);
-    PrintNodeData(&index2, stk2, node2, stk2->size - 1);
+    PrintNodesData(&index2, stk2, node2, stk2->size);
+
+    free(name1);
+    free(name2);
+    free(stk1);
+    free(stk2);
 
     return error;
 }
@@ -278,8 +286,14 @@ error_t SaveDataBase(Tree* tree)
     return error;
 }
 
-Stack* SearchObject(char* name_of_object, Node* node, error_t* error)
+Stack* StackDefinition(Node* node, error_t* error, char** name_of_object)
 {
+    PTR_ASSERT(node)
+    PTR_ASSERT(error)
+    PTR_ASSERT(name_of_object)
+
+    *name_of_object = ReadWordFromStdInput(error);
+
     Stack* stk = (Stack*) calloc(1, sizeof(Stack));
     if (stk == nullptr)
     {
@@ -287,76 +301,81 @@ Stack* SearchObject(char* name_of_object, Node* node, error_t* error)
         return nullptr;
     }
 
-    *error |= STACK_CTOR(stk);
+    *error = STACK_CTOR(stk);
+
+    if (SearchObject(*name_of_object, node, stk, error) == false)
+    {
+        *error |= OBJECT_IS_NOT_IN_DATA_BASE_ERR;
+        return nullptr;
+    }
+
+    return stk;
+}
+
+bool SearchObject(char* name_of_object, Node* node, Stack* stk, error_t* error)
+{
+    PTR_ASSERT(node)
+    PTR_ASSERT(error)
+    PTR_ASSERT(stk)
+    PTR_ASSERT(name_of_object)
+
     if (*error != NO_ERR)
     {
-        return nullptr;
+        return false;
     }
 
     stk_elem_t temp_element = STK_POISON_VALUE;
     
-    if (strcmp(name_of_object, node->data) == 0)
+    if (node->left == nullptr && node->right == nullptr)
     {
-        return stk;
+        if (strncmp(node->data, name_of_object, strlen(node->data)) == 0)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
 
     StackPush(stk, ADD_LEFT_NODE);
 
-    if ((node->left != nullptr) && (SearchObject(name_of_object, node->left, error) != nullptr))
+    if ((node->left != nullptr) && SearchObject(name_of_object, node->left, stk, error))
     {
-        return stk;
+        return true;
     }
 
     StackPop(stk, &temp_element);
     StackPush(stk, ADD_RIGHT_NODE);
 
-    if ((node->right != nullptr) && (SearchObject(name_of_object, node->right, error) != nullptr))
+    if ((node->right != nullptr) && SearchObject(name_of_object, node->right, stk, error))
     {
-        return stk;
+        return true;
     }
 
     StackPop(stk, &temp_element);
 
-    return nullptr;
+    return false;
 }
 
-void SearchFirstDifference(size_t* index, Stack* stk1, Stack* stk2, Node* node1, Node* node2)
+void SearchFirstDifference(size_t* index, Stack* stk1, Stack* stk2)
 {
     PTR_ASSERT(index)
     PTR_ASSERT(stk1)
     PTR_ASSERT(stk2)
-    PTR_ASSERT(node1)
-    PTR_ASSERT(node2)
 
-    while (*index < (size_t)(stk1->size - 1) && *index < (size_t)(stk2->size - 1) && strcmp(node1->data, node2->data) == 0)
+    while ( *index < (size_t)(stk1->size)   && 
+            *index < (size_t)(stk2->size)     )
     {
-        *index += 1;
-        switch (GetStkDataElemT(stk1, *index))
+        if (GetStkDataElemT(stk1, *index) == GetStkDataElemT(stk2, *index))
         {
-            case ADD_LEFT_NODE:
-                node1 = node1->left;
-                break;
-
-            case ADD_RIGHT_NODE:
-                node1 = node1->right;
-                break;
-
-            default:
-                break;
+            *index += 1;
         }
-
-        switch (GetStkDataElemT(stk2, *index))
+        else
         {
-            case ADD_LEFT_NODE:
-                node2 = node2->left;
-                break;
-
-            case ADD_RIGHT_NODE:
-                node2 = node2->right;
-                break;
-
-            default:
-                break;
+            return;
         }
     }
+
+    return;
 }

@@ -4,7 +4,7 @@
 
 #include "../../CommonFiles/config_errors.h"
 
-#define PRINT_STACK(stk) PrintStack((stk), #stk, __FILE__, __FUNCTION__, __LINE__);
+#define PRINT_STACK(stk) PrintStack((stk), __FILE__, __FUNCTION__, __LINE__);
 #define STACK_CTOR(stk) StackCtor((stk), #stk, __FILE__, __LINE__);
 
 #include <assert.h>

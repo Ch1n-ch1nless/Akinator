@@ -43,8 +43,10 @@ error_t DeleteDataBase(Tree* tree);
 
 error_t SaveDataBase(Tree* tree);
 
-Stack*  SearchObject(char* name_of_object, Node* node, error_t* error);
+Stack*  StackDefinition(Node* node, error_t* error, char** name_of_object);
 
-void    SearchFirstDifference(size_t* index, Stack* stk1, Stack* stk2, Node* node1, Node* node2);
+bool    SearchObject(char* name_of_object, Node* node, Stack* stk, error_t* error);
+
+void    SearchFirstDifference(size_t* index, Stack* stk1, Stack* stk2);
 
 #endif /*GAME_FUNCTIONS_H_INCLUDED*/
