@@ -5,6 +5,8 @@
 
 #include "akinator_config.h"
 
+#include "colours.h"
+
 void ShowIntro();
 
 void ShowOutro();

@@ -39,9 +39,8 @@ enum Errors : error_t
     INPUT_ERR                           = 1 << 26,
     EMPTY_FILE_ERR                      = 1 << 27,
     FREAD_ERR                           = 1 << 28,
-    OBJECT_IS_NOT_IN_DATA_BASE_ERR      = 1 << 29,
-
-    END_OF_ENUM
+    BUFFER_IS_NULL_ERR                  = 1 << 29,
+    BUF_SIZE_IS_FEWER_ZERO_ERR          = 1 << 30,
 };
 
 #endif //CONFIG_ERRORS_H_INCLUDED

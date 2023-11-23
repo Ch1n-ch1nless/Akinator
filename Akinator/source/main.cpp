@@ -8,12 +8,10 @@ int main()
     Akinator akinator = {};
 
     error = AKINATOR_CTOR(&akinator)
-
-    error |= FillTreeFromBuffer(&akinator);
+    CHECK_ERRORS(error)
 
     error |= PlayGame(&akinator);
-
-    TreeGraphDump(&(akinator.tree));
+    CHECK_ERRORS(error)
 
     error = AkinatorDtor(&akinator);
 

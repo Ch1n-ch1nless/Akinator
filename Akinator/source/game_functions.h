@@ -43,7 +43,7 @@ error_t DeleteDataBase(Tree* tree);
 
 error_t SaveDataBase(Tree* tree);
 
-Stack*  StackDefinition(Node* node, error_t* error, char** name_of_object);
+error_t StackDefinition(Node* node, Stack* stk, char** name_of_object);
 
 bool    SearchObject(char* name_of_object, Node* node, Stack* stk, error_t* error);
 

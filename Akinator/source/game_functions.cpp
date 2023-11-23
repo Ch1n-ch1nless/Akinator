@@ -16,26 +16,32 @@ error_t PlayGame(Akinator* akinator)
         {
             case MODE_GUESSING:
                 error |= GuessObject(akinator->tree.root); 
+                CHECK_ERRORS(error)
                 break;
 
             case MODE_DEFINITION:
-                error |= GetDefinition(&(akinator->tree)); //TODO fix function
+                error |= GetDefinition(&(akinator->tree)); 
+                CHECK_ERRORS(error)
                 break;
 
             case MODE_COMPARISON:
-                error |= GetComparison(&(akinator->tree)); //TODO fix function
+                error |= GetComparison(&(akinator->tree));
+                CHECK_ERRORS(error) 
                 break;
 
             case MODE_DELETE_DATA_BASE:
                 error |= DeleteDataBase(&(akinator->tree));
+                CHECK_ERRORS(error)
                 break;
 
             case MODE_SAVE_DATA_BASE:
                 error |= SaveDataBase(&(akinator->tree));
+                CHECK_ERRORS(error)
                 break;
 
             case MODE_DRAW_TREE:
                 TreeGraphDump(&(akinator->tree)); 
+                CHECK_ERRORS(error)
                 break;
 
             case MODE_QUIT:
@@ -86,7 +92,7 @@ Mods GetMode()
 
 error_t GuessObject(Node* node)
 {
-    assert((node != nullptr) && "Pointer to node is NULL!!!\n");
+    PTR_ASSERT(node)
 
     error_t error = NO_ERR;
 
@@ -146,8 +152,8 @@ error_t GuessObject(Node* node)
 
 Answers GetAnswer()
 {
-    printf("Enter \'y\' -- if your answer is yes\n"
-           "Enter \'n\' -- if your answer is no\n" );
+    printf("Enter \'" LGREEN("y") "\' -- if your answer is " LGREEN("yes") "\n"
+           "Enter \'" LRED("n")   "\' -- if your answer is " LRED("no") "\n" );
 
     char ans = '\0';
     scanf("%c", &ans);
@@ -159,11 +165,10 @@ Answers GetAnswer()
 
 error_t AddNewObject(Node* node)
 {
-    assert((node != nullptr) && "Pointer to node is NULL!!!\n");
+    PTR_ASSERT(node);
 
     error_t error = NO_ERR;
 
-    // check all errors
     printf("Enter the name of your object.\n");
     char* new_object = ReadWordFromStdInput(&error);
 
@@ -182,15 +187,20 @@ error_t AddNewObject(Node* node)
 
 error_t GetDefinition(Tree* tree)
 {
-    assert((tree != nullptr) && "Pointer to tree is NULL!!!\n");
+    PTR_ASSERT(tree)
 
     error_t error = NO_ERR;
 
     printf("Enter the name of your object.\n");
     char* name_of_object = nullptr;
-    Stack* stk = StackDefinition(tree->root, &error, &name_of_object);
 
-    if (stk->size == 0)
+    Stack stk = {};
+
+    STACK_CTOR(&stk)
+
+    error = StackDefinition(tree->root, &stk, &name_of_object);
+
+    if (stk.size == 0)
     {
         printf("Sorry, object \'%s\' isn't in data base!\n", name_of_object);
     }
@@ -199,10 +209,11 @@ error_t GetDefinition(Tree* tree)
         printf("Definition of %s:\n", name_of_object);
 
         size_t index = 0;
-        PrintNodesData(&index, stk, tree->root, stk->size);
+        PrintNodesData(&index, &stk, tree->root, stk.size);
     }
 
-    free(stk);
+    StackDtor(&stk);
+
     free(name_of_object);
 
     return error;
@@ -216,11 +227,15 @@ error_t GetComparison(Tree* tree)
 
     printf("Enter name of first object:\n");
     char* name1 = nullptr;
-    Stack* stk1 = StackDefinition(tree->root, &error, &name1);
+    Stack stk1 = {};
+    STACK_CTOR(&stk1);
+    error |= StackDefinition(tree->root, &stk1, &name1);
 
     printf("Enter name of second object:\n");
     char* name2 = nullptr;
-    Stack* stk2 = StackDefinition(tree->root, &error, &name2);
+    Stack stk2 = {};
+    STACK_CTOR(&stk2);
+    error |= StackDefinition(tree->root, &stk2, &name2);
 
     size_t index1 = 0;
     size_t index2 = 0;
@@ -229,19 +244,20 @@ error_t GetComparison(Tree* tree)
     Node* node2 = tree->root;
 
     printf("Common features of objects:\n");
-    SearchFirstDifference(&index1, stk1, stk2);
-    PrintNodesData(&index2, stk1, tree->root, index1);
+    SearchFirstDifference(&index1, &stk1, &stk2);
+    PrintNodesData(&index2, &stk1, tree->root, index1);
 
     printf("\nDifferent features of " tree_format "\n", name1);
-    PrintNodesData(&index1, stk1, node1, stk1->size);
+    PrintNodesData(&index1, &stk1, node1, stk1.size);
 
     printf("\nDifferent features of " tree_format "\n", name2);
-    PrintNodesData(&index2, stk2, node2, stk2->size);
+    PrintNodesData(&index2, &stk2, node2, stk2.size);
 
     free(name1);
     free(name2);
-    free(stk1);
-    free(stk2);
+    
+    StackDtor(&stk1);
+    StackDtor(&stk2);
 
     return error;
 }
@@ -283,33 +299,24 @@ error_t SaveDataBase(Tree* tree)
 
     PrintInPreOrder(tree->root, data_file);
 
+    error |= CloseFile(data_file);
+
     return error;
 }
 
-Stack* StackDefinition(Node* node, error_t* error, char** name_of_object)
+error_t StackDefinition(Node* node, Stack* stk, char** name_of_object)
 {
     PTR_ASSERT(node)
-    PTR_ASSERT(error)
+    PTR_ASSERT(stk)
     PTR_ASSERT(name_of_object)
 
-    *name_of_object = ReadWordFromStdInput(error);
+    error_t error = NO_ERR;
 
-    Stack* stk = (Stack*) calloc(1, sizeof(Stack));
-    if (stk == nullptr)
-    {
-        *error |= MEM_ALLOC_ERR;
-        return nullptr;
-    }
+    *name_of_object = ReadWordFromStdInput(&error);
 
-    *error = STACK_CTOR(stk);
+    SearchObject(*name_of_object, node, stk, &error);
 
-    if (SearchObject(*name_of_object, node, stk, error) == false)
-    {
-        *error |= OBJECT_IS_NOT_IN_DATA_BASE_ERR;
-        return nullptr;
-    }
-
-    return stk;
+    return error;
 }
 
 bool SearchObject(char* name_of_object, Node* node, Stack* stk, error_t* error)

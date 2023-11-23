@@ -1,6 +1,6 @@
 #include "akinator.h"
 
-error_t AkinatorCtor(Akinator* akinator, const char* name, const char* file, const int line)
+error_t AkinatorCtor(Akinator* const akinator, const char* const name, const char* const file, const int line)
 {
     PTR_ASSERT(akinator)
     PTR_ASSERT(name)
@@ -9,9 +9,11 @@ error_t AkinatorCtor(Akinator* akinator, const char* name, const char* file, con
 
     error_t error = NO_ERR;
 
-    error = TREE_CTOR(&(akinator->tree));
+    error |= TREE_CTOR(&(akinator->tree));
 
-    error = DataBaseCtor(&(akinator->buffer), &(akinator->buf_size));
+    error |= FillBuffer(&(akinator->buffer), &(akinator->buf_size));
+
+    error |= FillTreeFromBuffer(akinator);
 
     akinator->name = name;
 
@@ -22,7 +24,7 @@ error_t AkinatorCtor(Akinator* akinator, const char* name, const char* file, con
     return error;
 }
 
-error_t DataBaseCtor(char** const buffer, size_t* const buf_size)
+error_t FillBuffer(char** const buffer, size_t* const buf_size)
 {
     PTR_ASSERT(buffer)
     PTR_ASSERT(buf_size)
@@ -50,7 +52,7 @@ error_t AkinatorDtor(Akinator* akinator)
 
     error = TreeDtor(&(akinator->tree));
 
-    error = DataBaseDtor(&(akinator->buffer), &(akinator->buf_size));
+    error = DeleteBuffer(&(akinator->buffer), &(akinator->buf_size));
 
     akinator->name  = nullptr;
 
@@ -61,7 +63,7 @@ error_t AkinatorDtor(Akinator* akinator)
     return error;
 }
 
-error_t DataBaseDtor(char** buffer, size_t* const buf_size)
+error_t DeleteBuffer(char** buffer, size_t* const buf_size)
 {
     PTR_ASSERT(buffer)
     PTR_ASSERT(buf_size)
@@ -246,4 +248,88 @@ Node* GetNodeFromStack(Stack* stk, Tree* tree, error_t* error)
     }
 
     return node;
+}
+
+error_t AkinatorVerify(Akinator* const akinator)
+{
+    PTR_ASSERT(akinator)
+
+    error_t error = NO_ERR;
+
+    error = TreeVerify(&(akinator->tree));
+
+    if (akinator->buffer == nullptr)
+    {
+        error |= BUFFER_IS_NULL_ERR;
+    }
+
+    if (akinator->name == nullptr)
+    {
+        error |= NULL_NAME_ERR;
+    }
+
+    if (akinator->file == nullptr)
+    {
+        error |= NULL_FILE_ERR;
+    }
+
+    if (akinator->line <= 0)
+    {
+        error |= MINUS_LINE_ERR;
+    }
+
+    return error;
+}
+
+void PrintAkinatorError(error_t error)
+{
+    if (error & BUFFER_IS_NULL_ERR)
+    {
+        printf("Error! Buffer is NULL!\n");
+    }
+
+    if (error & NULL_NAME_ERR)
+    {
+        printf("Error! Name is NULL!\n");
+    }
+
+    if (error & NULL_FILE_ERR)
+    {
+        printf("Error! File is NULL!\n");
+    }
+
+    if (error & MINUS_LINE_ERR)
+    {
+        printf("Error! Line is fewer then 0!\n");
+    }
+
+    if (error & LEN_OF_WORD_IS_BIGGER_MAX_SIZE_ERR)
+    {
+        printf("Error! Size of word is bigger then maximal len of word!\n");
+    }
+
+    if (error & UNKNOWN_INDICATOR_ERR)
+    {
+        printf("Error! User writes wrong indicator!\n");
+    }
+
+    if (error & WRONG_BUFFER_SYNTAX_ERR)
+    {
+        printf("Error! Program can not correct read the buffer\n");
+    }
+
+    if (error & INPUT_ERR)
+    {
+        printf("Error! User writes wrong expression!\n");
+    }
+
+    if (error & EMPTY_FILE_ERR)
+    {
+        printf("Error! File is empty!\n");
+    }
+
+    if (error & FREAD_ERR)
+    {
+        printf("Error! Error in function 'fread'!!\n");
+    }
 }
