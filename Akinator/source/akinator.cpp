@@ -113,6 +113,8 @@ error_t FillTreeFromBuffer(Akinator* akinator)
     {
         SkipWhiteSpacesTabsAndEnters(&cur_symbol);
 
+        PRINT_STACK(&stk);
+
         switch(*cur_symbol)
         {
             case (OPEN_NODE_BRACKET):
@@ -121,6 +123,7 @@ error_t FillTreeFromBuffer(Akinator* akinator)
                 {
                     error |= StackPush(&stk, ADD_LEFT_NODE);
                     node->left = NodeCtor(&error, nullptr);
+                    node = node->left;
                 }
                 else
                 {
@@ -128,6 +131,7 @@ error_t FillTreeFromBuffer(Akinator* akinator)
                     {
                         error |= StackPush(&stk, ADD_RIGHT_NODE);
                         node->right = NodeCtor(&error, nullptr);
+                        node = node->right;
                     }
                     else
                     {

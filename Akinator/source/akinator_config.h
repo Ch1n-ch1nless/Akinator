@@ -12,6 +12,25 @@
 #include "../../Tree/source/tree.h"
 #include "../../Stack/source/stack.h"
 
+enum Mods : char
+{
+    MODE_INCORRECT        = '\0',
+    MODE_GUESSING         = 'g',
+    MODE_DEFINITION       = 'd',
+    MODE_COMPARISON       = 'c',
+    MODE_DELETE_DATA_BASE = 'e',
+    MODE_SAVE_DATA_BASE   = 's',
+    MODE_DRAW_TREE        = 'p',
+    MODE_QUIT             = 'q'
+};
+
+enum Answers : char
+{
+    ANSWER_UNDEFINED    = '\0',
+    ANSWER_YES          = 'y',
+    ANSWER_NO           = 'n'
+};
+
 struct Akinator
 {
     Tree        tree      = {};

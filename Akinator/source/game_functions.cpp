@@ -154,8 +154,9 @@ error_t GuessObject(Tree* tree)
 
 Answers GetAnswer()
 {
-    printf("Enter \'" LGREEN("y") "\' -- if your answer is " LGREEN("yes") "\n"
-           "Enter \'" LRED("n")   "\' -- if your answer is " LRED("no") "\n" );
+    printf("Enter \'" LGREEN("%s") "\' -- if your answer is " LGREEN("yes") "\n"
+           "Enter \'" LRED("%s")   "\' -- if your answer is " LRED("no") "\n",
+           ANSWER_YES, ANSWER_NO);
 
     char ans = '\0';
     scanf("%c", &ans);
